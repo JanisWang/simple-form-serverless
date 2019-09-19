@@ -1,0 +1,44 @@
+service: simple-form-serverless
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: dev
+  region: ap-southeast-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource: "*"
+    - Effect: Allow
+      Action: 
+        - dynamodb:*
+      Resource:
+        - "Fn::GetAtt": [ SimpleFormTable, Arn ]
+functions:
+  simpleFormService:
+    handler: functions/simpleFormHandler.simpleFormSubmit
+    events:
+      - http:
+          path: submit
+          method: post
+          cors: true
+  stateInvokeService:
+    handler: functions/stateInvokeHandler.stateInvokeHandler
+resources:
+  Resources:
+    SimpleFormTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: Id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: Id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: "SimpleFormTable"
